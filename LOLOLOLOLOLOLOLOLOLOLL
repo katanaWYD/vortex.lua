@@ -2,16 +2,36 @@
 
 -- Fetch the hitbox size from the environment variable set in the main script
 local hitboxSize = getgenv().HitboxSize
+local knockCheckEnabled = getgenv().KnockCheckEnabled  -- Fetch the knock check setting
 
--- Example function to modify players' HumanoidRootPart size
 game:GetService("RunService").RenderStepped:Connect(function()
     for _, v in next, game.Players:GetPlayers() do
         if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            -- Change the HumanoidRootPart size using the single hitbox size for all dimensions (x, y, z)
-            v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+            local humanoid = v.Character:FindFirstChild("Humanoid")
             
-            -- Set CanCollide to false so you can walk through the character
-            v.Character.HumanoidRootPart.CanCollide = false
+            if humanoid then
+                -- Check if knocked check is enabled
+                if knockCheckEnabled then
+                    -- Check if the player's humanoid is knocked (health is 0)
+                    local isKnocked = humanoid.Health <= 0
+
+                    if not isKnocked then
+                        -- Change the HumanoidRootPart size to the hitbox size (if not knocked)
+                        v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                        
+                        -- Set CanCollide to false so you can walk through the character (if not knocked)
+                        v.Character.HumanoidRootPart.CanCollide = false
+                    else
+                        -- If the player is knocked, disable the hitbox expander (keep the normal size)
+                        v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size
+                        v.Character.HumanoidRootPart.CanCollide = true
+                    end
+                else
+                    -- If knock check is disabled, always apply the hitbox size
+                    v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    v.Character.HumanoidRootPart.CanCollide = false
+                end
+            end
         end
     end
 end)
