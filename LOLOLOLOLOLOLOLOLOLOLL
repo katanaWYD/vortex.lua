@@ -26,7 +26,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
             if onScreen and distance <= fovRadius then
                 -- Apply hitbox expansion immediately if within the FOV
                 humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                humanoidRootPart.CanCollide = false  -- Allow walking through the player
+                humanoidRootPart.CanCollide = false  -- Prevent collision so you can walk through the hitbox
 
                 -- Show visual hitbox if enabled
                 if visualHitbox then
@@ -37,7 +37,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
                         visualPart.Shape = Enum.PartType.Block  -- Use block shape for the visual hitbox (box)
                         visualPart.Position = humanoidRootPart.Position
                         visualPart.Anchored = true
-                        visualPart.CanCollide = false
+                        visualPart.CanCollide = false  -- No collision for the visual part either
                         visualPart.Transparency = 0.4  -- Set transparency to 0.4
                         visualPart.Color = Color3.fromRGB(169, 169, 169)  -- Slightly grey color
                         visualPart.Parent = player.Character
@@ -54,7 +54,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
             else
                 -- Reset hitbox size if outside the FOV
                 humanoidRootPart.Size = humanoidRootPart.Size  -- Keep original size
-                humanoidRootPart.CanCollide = true  -- Re-enable collision
+                humanoidRootPart.CanCollide = true  -- Re-enable collision (player can collide again)
 
                 -- Remove the visual hitbox if outside the FOV and visual hitbox is enabled
                 if visualHitbox and visualHitboxParts[player.UserId] then
