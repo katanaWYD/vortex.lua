@@ -1,74 +1,17 @@
--- FPS Booster Script for Da Hood with Hitbox Expander and Shot Detection Fix
+-- External script (vortex.lua)
 
-local hitboxSize = getgenv().HitboxSize  -- Custom hitbox size (single number)
-local showVisualHitbox = getgenv().ShowHitboxVisual  -- Whether to show the visual hitbox
+-- Fetch the hitbox size from the environment variable set in the main script
+local hitboxSize = getgenv().HitboxSize
 
-local visualHitboxParts = {}  -- Table to store visual hitboxes for each player
-
+-- Example function to modify players' HumanoidRootPart size
 game:GetService("RunService").RenderStepped:Connect(function()
-    -- Iterate through all players
-    for _, player in ipairs(game.Players:GetPlayers()) do
-        -- Only apply to other players (not the local player)
-        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local humanoidRootPart = player.Character.HumanoidRootPart
-
-            -- Apply hitbox expansion: Change size and disable collision
-            humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-            humanoidRootPart.CanCollide = false  -- Prevent collision so you can walk through
-
-            -- Disable collision for all other parts of the player's character
-            for _, part in ipairs(player.Character:GetChildren()) do
-                if part:IsA("Part") then
-                    part.CanCollide = false
-                end
-            end
-
-            -- Show visual hitbox if enabled
-            if showVisualHitbox then
-                -- Create a visual hitbox part if not already created
-                if not visualHitboxParts[player.UserId] then
-                    local visualPart = Instance.new("Part")
-                    visualPart.Size = humanoidRootPart.Size
-                    visualPart.Shape = Enum.PartType.Block  -- Box shape for the visual hitbox
-                    visualPart.Position = humanoidRootPart.Position
-                    visualPart.Anchored = true
-                    visualPart.CanCollide = false  -- Make the visual part non-collidable (walk through it)
-                    visualPart.Transparency = 0.7  -- Set transparency to 0.7 to make it semi-transparent
-                    visualPart.Color = Color3.fromRGB(169, 169, 169)  -- Slightly grey color
-                    visualPart.Parent = player.Character
-
-                    -- Store the visual part in the table for later updates
-                    visualHitboxParts[player.UserId] = visualPart
-                else
-                    -- Update the existing visual part's size and position
-                    local visualPart = visualHitboxParts[player.UserId]
-                    visualPart.Size = humanoidRootPart.Size
-                    visualPart.Position = humanoidRootPart.Position
-                end
-            end
-
-            -- Handle hit detection (Raycast)
-            -- Use the position of the HumanoidRootPart and a larger bounding box around the character
-            local character = player.Character
-            local boundingBox = character:FindFirstChild("HumanoidRootPart").Position
-            local radius = hitboxSize / 2  -- Use half the size for radius
-
-            -- Create a 3D box around the character to detect hits on the edges of the expanded hitbox
-            local boxSize = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-            local boxPosition = humanoidRootPart.Position
-
-            -- Raycast from the camera to check if it hits the hitbox
-            local rayOrigin = workspace.CurrentCamera.CFrame.p
-            local rayDirection = (boxPosition - rayOrigin).unit * 100  -- Adjust ray length to your needs
-            local ray = Ray.new(rayOrigin, rayDirection)
-
-            local hitPart, hitPosition = workspace:FindPartOnRay(ray, game.Players.LocalPlayer.Character)
-
-            -- Check if the hit is within the expanded hitbox bounds
-            if hitPart and hitPart.Parent == player.Character then
-                -- If a shot hits the player's expanded hitbox (HumanoidRootPart)
-                print(player.Name .. " was hit!")
-            end
+    for _, v in next, game.Players:GetPlayers() do
+        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            -- Change the HumanoidRootPart size to the value from getgenv()
+            v.Character.HumanoidRootPart.Size = hitboxSize
+            
+            -- Set CanCollide to false so you can walk through the character
+            v.Character.HumanoidRootPart.CanCollide = false
         end
     end
 end)
