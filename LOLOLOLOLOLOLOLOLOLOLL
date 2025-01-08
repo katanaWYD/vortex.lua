@@ -7,8 +7,8 @@ local hitboxSize = getgenv().HitboxSize
 game:GetService("RunService").RenderStepped:Connect(function()
     for _, v in next, game.Players:GetPlayers() do
         if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            -- Change the HumanoidRootPart size to the value from getgenv()
-            v.Character.HumanoidRootPart.Size = hitboxSize
+            -- Change the HumanoidRootPart size using the single hitbox size for all dimensions (x, y, z)
+            v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
             
             -- Set CanCollide to false so you can walk through the character
             v.Character.HumanoidRootPart.CanCollide = false
