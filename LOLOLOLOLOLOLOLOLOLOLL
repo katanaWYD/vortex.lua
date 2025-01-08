@@ -1,8 +1,8 @@
 -- External script (vortex.lua)
 
--- Fetch the hitbox size, FOV, and visual hitbox setting from the environment variables
+-- Fetch the hitbox size, FOV radius, and visual hitbox setting from the environment variables
 local hitboxSize = getgenv().HitboxSize
-local fov = getgenv().FOV  -- Fetch the FOV setting
+local fovRadius = getgenv().FOVRadius  -- Fetch the FOV radius (in pixels)
 local visualHitbox = getgenv().VisualHitbox  -- Fetch the visual hitbox toggle
 
 -- Table to store visual hitboxes
@@ -10,22 +10,20 @@ local visualHitboxParts = {}
 
 game:GetService("RunService").RenderStepped:Connect(function()
     local camera = game.Workspace.CurrentCamera  -- Get the current camera
-    local cameraPosition = camera.CFrame.Position  -- Camera's position in the world
-    local cameraForward = camera.CFrame.LookVector  -- Camera's forward direction vector
+    local screenCenter = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)  -- Screen center in pixels
 
     -- Iterate through all players
     for _, player in next, game.Players:GetPlayers() do
         if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local humanoidRootPart = player.Character.HumanoidRootPart
-            local playerPosition = humanoidRootPart.Position  -- Get player's position
-            local playerDirection = (playerPosition - cameraPosition).unit  -- Get direction from camera to player
-            local dotProduct = cameraForward:Dot(playerDirection)  -- Dot product of camera direction and player direction
+            local playerPosition = humanoidRootPart.Position  -- Get player's position in world space
+            local screenPosition, onScreen = camera:WorldToScreenPoint(playerPosition)  -- Convert world position to screen position
 
-            -- Calculate the angle between camera and player
-            local angle = math.deg(math.acos(dotProduct))  -- Convert the dot product to an angle
+            -- Calculate the distance between the screen center and the player's position
+            local distance = (screenCenter - Vector2.new(screenPosition.X, screenPosition.Y)).Magnitude
 
-            -- Check if the player is within the specified FOV (ensure FOV logic is correct)
-            if angle <= fov then
+            -- Check if the player is within the specified FOV circle (in pixels)
+            if onScreen and distance <= fovRadius then
                 -- Apply hitbox expansion if within the FOV
                 humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                 humanoidRootPart.CanCollide = false  -- Allow walking through the player
