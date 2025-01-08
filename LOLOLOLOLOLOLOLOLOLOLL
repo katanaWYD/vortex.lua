@@ -1,4 +1,3 @@
-local scriptContent = [[
 game:GetService("RunService").RenderStepped:Connect(function()
     for _, v in next, game.Players:GetPlayers() do
         if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
@@ -10,4 +9,3 @@ game:GetService("RunService").RenderStepped:Connect(function()
         end
     end
 end)
-]]
