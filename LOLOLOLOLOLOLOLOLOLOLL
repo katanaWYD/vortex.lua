@@ -19,7 +19,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
             local playerPosition = humanoidRootPart.Position  -- Get player's position in world space
             local screenPosition, onScreen = camera:WorldToScreenPoint(playerPosition)  -- Convert world position to screen position
 
-            -- Calculate the distance between the screen center and the player's position
+            -- Calculate the distance between the screen center and the player's position in screen space
             local distance = (screenCenter - Vector2.new(screenPosition.X, screenPosition.Y)).Magnitude
 
             -- Check if the player is within the specified FOV circle (in pixels)
