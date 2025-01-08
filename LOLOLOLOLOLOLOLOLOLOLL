@@ -1,23 +1,22 @@
--- External script (vortex.lua)
+-- External Script to apply the hitbox expansion and visual hitbox
 
--- Fetch the hitbox size and visual hitbox setting from the environment variables
-local hitboxSize = getgenv().HitboxSize  -- Custom hitbox size
-local visualHitbox = getgenv().VisualHitbox  -- Toggle for visual hitbox
+local hitboxSize = getgenv().HitboxSize  -- Get the hitbox size from the main script
+local visualHitbox = getgenv().VisualHitbox  -- Get whether to show the visual hitbox
 
--- Table to store visual hitboxes
-local visualHitboxParts = {}
+local visualHitboxParts = {}  -- To store visual hitboxes for players
 
 game:GetService("RunService").RenderStepped:Connect(function()
     -- Iterate through all players
-    for _, player in next, game.Players:GetPlayers() do
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        -- Only apply to other players (not the local player)
         if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local humanoidRootPart = player.Character.HumanoidRootPart
 
-            -- Apply hitbox expansion (constant for all players)
+            -- Apply hitbox expansion: Change size and disable collision
             humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
             humanoidRootPart.CanCollide = false  -- Prevent collision so you can walk through
 
-            -- Iterate through all parts in the player's character to disable collision
+            -- Disable collision for all other parts of the player's character
             for _, part in ipairs(player.Character:GetChildren()) do
                 if part:IsA("Part") then
                     part.CanCollide = false
@@ -30,25 +29,26 @@ game:GetService("RunService").RenderStepped:Connect(function()
                 if not visualHitboxParts[player.UserId] then
                     local visualPart = Instance.new("Part")
                     visualPart.Size = humanoidRootPart.Size
-                    visualPart.Shape = Enum.PartType.Block  -- Use block shape for the visual hitbox (box)
+                    visualPart.Shape = Enum.PartType.Block  -- Box shape for the visual hitbox
                     visualPart.Position = humanoidRootPart.Position
                     visualPart.Anchored = true
-                    visualPart.CanCollide = false  -- No collision for the visual part either
-                    visualPart.Transparency = 0.4  -- Set transparency to 0.4
+                    visualPart.CanCollide = false  -- Make the visual part non-collidable
+                    visualPart.Transparency = 0.4  -- Set transparency to make it semi-transparent
                     visualPart.Color = Color3.fromRGB(169, 169, 169)  -- Slightly grey color
                     visualPart.Parent = player.Character
 
-                    -- Store the visual part in the table for later reference
+                    -- Store the visual part in the table for later updates
                     visualHitboxParts[player.UserId] = visualPart
                 else
-                    -- Update existing visual hitbox part size and position immediately
+                    -- Update the existing visual part's size and position
                     local visualPart = visualHitboxParts[player.UserId]
                     visualPart.Size = humanoidRootPart.Size
                     visualPart.Position = humanoidRootPart.Position
                 end
             end
         else
-            -- If the player doesn't have a humanoidRootPart, remove their visual hitbox if it exists
+            -- If the player doesn't have a humanoidRootPart or their character is missing,
+            -- remove their visual hitbox if it exists.
             if visualHitboxParts[player.UserId] then
                 visualHitboxParts[player.UserId]:Destroy()
                 visualHitboxParts[player.UserId] = nil
