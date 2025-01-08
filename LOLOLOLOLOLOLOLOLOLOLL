@@ -48,19 +48,26 @@ game:GetService("RunService").RenderStepped:Connect(function()
             end
 
             -- Handle hit detection (Raycast)
-            local ray = Ray.new(player.Character.HumanoidRootPart.Position, (player.Character.HumanoidRootPart.Position - workspace.CurrentCamera.CFrame.p).unit * 100)  -- Adjust the range as needed
+            -- Use the position of the HumanoidRootPart and a larger bounding box around the character
+            local character = player.Character
+            local boundingBox = character:FindFirstChild("HumanoidRootPart").Position
+            local radius = hitboxSize / 2  -- Use half the size for radius
+
+            -- Create a 3D box around the character to detect hits on the edges of the expanded hitbox
+            local boxSize = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+            local boxPosition = humanoidRootPart.Position
+
+            -- Raycast from the camera to check if it hits the hitbox
+            local rayOrigin = workspace.CurrentCamera.CFrame.p
+            local rayDirection = (boxPosition - rayOrigin).unit * 100  -- Adjust ray length to your needs
+            local ray = Ray.new(rayOrigin, rayDirection)
+
             local hitPart, hitPosition = workspace:FindPartOnRay(ray, game.Players.LocalPlayer.Character)
 
+            -- Check if the hit is within the expanded hitbox bounds
             if hitPart and hitPart.Parent == player.Character then
-                -- If a shot hits the player's hitbox (HumanoidRootPart)
+                -- If a shot hits the player's expanded hitbox (HumanoidRootPart)
                 print(player.Name .. " was hit!")
-            end
-        else
-            -- If the player doesn't have a humanoidRootPart or their character is missing,
-            -- remove their visual hitbox if it exists.
-            if visualHitboxParts[player.UserId] then
-                visualHitboxParts[player.UserId]:Destroy()
-                visualHitboxParts[player.UserId] = nil
             end
         end
     end
