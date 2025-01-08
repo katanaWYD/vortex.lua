@@ -8,28 +8,30 @@ game:GetService("RunService").RenderStepped:Connect(function()
     for _, v in next, game.Players:GetPlayers() do
         if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
             local humanoid = v.Character:FindFirstChild("Humanoid")
-            
-            if humanoid then
-                -- Check if knocked check is enabled
-                if knockCheckEnabled then
-                    -- Check if the player's humanoid is knocked (health is 0)
-                    local isKnocked = humanoid.Health <= 0
 
-                    if not isKnocked then
-                        -- Change the HumanoidRootPart size to the hitbox size (if not knocked)
-                        v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                        
-                        -- Set CanCollide to false so you can walk through the character (if not knocked)
-                        v.Character.HumanoidRootPart.CanCollide = false
-                    else
-                        -- If the player is knocked, disable the hitbox expander (keep the normal size)
-                        v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size
-                        v.Character.HumanoidRootPart.CanCollide = true
+            if humanoid then
+                -- Track if the humanoid is knocked or not
+                local isKnocked = false
+                
+                -- Check for knock state if knock check is enabled
+                if knockCheckEnabled then
+                    if humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Physics then
+                        -- If health is 0 or state is Physics (knocked state), player is considered knocked
+                        isKnocked = true
                     end
-                else
-                    -- If knock check is disabled, always apply the hitbox size
+                end
+                
+                -- If knock check is disabled, always expand hitbox
+                if not knockCheckEnabled or not isKnocked then
+                    -- Change the HumanoidRootPart size to the hitbox size (if not knocked)
                     v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                    
+                    -- Set CanCollide to false so you can walk through the character (if not knocked)
                     v.Character.HumanoidRootPart.CanCollide = false
+                else
+                    -- If the player is knocked, reset the hitbox and set CanCollide back to true
+                    v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size
+                    v.Character.HumanoidRootPart.CanCollide = true
                 end
             end
         end
