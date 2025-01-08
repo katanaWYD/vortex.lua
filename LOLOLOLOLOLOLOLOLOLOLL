@@ -25,11 +25,12 @@ game:GetService("RunService").RenderStepped:Connect(function()
                     end
                 end
                 
-                -- If knock check is enabled and the player is knocked, add them to the whitelist
+                -- If the player is knocked, add them to the whitelist
                 if isKnocked then
                     knockedWhitelist[v.UserId] = true  -- Whitelist the knocked player
                 else
-                    knockedWhitelist[v.UserId] = nil  -- Remove the player from the whitelist (they're no longer knocked)
+                    -- If the player is conscious (health > 0 and not in Physics state), remove them from the whitelist
+                    knockedWhitelist[v.UserId] = nil  -- Unwhitelist the player (they're no longer knocked)
                 end
 
                 -- If the player is not in the whitelist (i.e., not knocked), expand their hitbox
