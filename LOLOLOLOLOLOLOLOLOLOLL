@@ -1,9 +1,9 @@
--- External Script to apply the hitbox expansion and visual hitbox
+-- External Script for Hitbox Expansion and Visual Hitbox
 
 local hitboxSize = getgenv().HitboxSize  -- Get the hitbox size from the main script
 local visualHitbox = getgenv().VisualHitbox  -- Get whether to show the visual hitbox
 
-local visualHitboxParts = {}  -- To store visual hitboxes for players
+local visualHitboxParts = {}  -- Table to store visual hitboxes for each player
 
 game:GetService("RunService").RenderStepped:Connect(function()
     -- Iterate through all players
