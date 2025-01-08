@@ -10,7 +10,6 @@ local visualHitboxParts = {}
 
 game:GetService("RunService").RenderStepped:Connect(function()
     local camera = game.Workspace.CurrentCamera  -- Get the current camera
-    local cameraCFrame = camera.CFrame  -- Get the camera's CFrame
     local cameraPosition = camera.CFrame.Position  -- Camera's position in the world
     local cameraForward = camera.CFrame.LookVector  -- Camera's forward direction vector
 
@@ -21,11 +20,11 @@ game:GetService("RunService").RenderStepped:Connect(function()
             local playerPosition = humanoidRootPart.Position  -- Get player's position
             local playerDirection = (playerPosition - cameraPosition).unit  -- Get direction from camera to player
             local dotProduct = cameraForward:Dot(playerDirection)  -- Dot product of camera direction and player direction
-            
+
             -- Calculate the angle between camera and player
             local angle = math.deg(math.acos(dotProduct))  -- Convert the dot product to an angle
 
-            -- Check if the player is within the specified FOV
+            -- Check if the player is within the specified FOV (ensure FOV logic is correct)
             if angle <= fov then
                 -- Apply hitbox expansion if within the FOV
                 humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
