@@ -1,50 +1,35 @@
 -- External script (vortex.lua)
 
--- Fetch the hitbox size and knock check setting from the environment variable set in the main script
+-- Fetch the hitbox size and FOV setting from the environment variable set in the main script
 local hitboxSize = getgenv().HitboxSize
-local knockCheckEnabled = getgenv().KnockCheckEnabled  -- Fetch the knock check setting
-
--- Create a whitelist table to keep track of knocked players
-local knockedWhitelist = {}
+local fov = getgenv().FOV  -- Fetch the FOV setting
 
 game:GetService("RunService").RenderStepped:Connect(function()
-    for _, v in next, game.Players:GetPlayers() do
-        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            local humanoid = v.Character:FindFirstChild("Humanoid")
+    local camera = game.Workspace.CurrentCamera  -- Get the current camera
+    local cameraCFrame = camera.CFrame  -- Get the camera's CFrame
+    local cameraPosition = camera.CFrame.Position  -- Camera's position in the world
+    local cameraForward = camera.CFrame.LookVector  -- Camera's forward direction vector
 
-            if humanoid then
-                -- Track if the humanoid is knocked or not
-                local isKnocked = false
-                
-                -- Check for knock state if knock check is enabled
-                if knockCheckEnabled then
-                    -- A player is considered knocked if their health is 0 or their humanoid state is Physics (ragdoll)
-                    if humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Physics then
-                        -- The player is knocked (health <= 0 or in ragdoll state)
-                        isKnocked = true
-                    end
-                end
-                
-                -- If the player is knocked, add them to the whitelist
-                if isKnocked then
-                    knockedWhitelist[v.UserId] = true  -- Whitelist the knocked player
-                else
-                    -- If the player is conscious (health > 0 and not in Physics state), remove them from the whitelist
-                    knockedWhitelist[v.UserId] = nil  -- Unwhitelist the player (they're no longer knocked)
-                end
+    -- Iterate through all players
+    for _, player in next, game.Players:GetPlayers() do
+        if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoidRootPart = player.Character.HumanoidRootPart
+            local playerPosition = humanoidRootPart.Position  -- Get player's position
+            local playerDirection = (playerPosition - cameraPosition).unit  -- Get direction from camera to player
+            local dotProduct = cameraForward:Dot(playerDirection)  -- Dot product of camera direction and player direction
+            
+            -- Calculate the angle between camera and player
+            local angle = math.deg(math.acos(dotProduct))  -- Convert the dot product to an angle
 
-                -- If the player is not in the whitelist (i.e., not knocked), expand their hitbox
-                if not knockedWhitelist[v.UserId] then
-                    -- Apply the custom hitbox size if not knocked
-                    v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-                    
-                    -- Disable collision so you can walk through the player if not knocked
-                    v.Character.HumanoidRootPart.CanCollide = false
-                else
-                    -- If the player is in the whitelist (knocked), reset the hitbox size and disable collision
-                    v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size -- Keep original size
-                    v.Character.HumanoidRootPart.CanCollide = false -- Disable collision completely if knocked
-                end
+            -- Check if the player is within the specified FOV
+            if angle <= fov then
+                -- Apply hitbox expansion if within the FOV
+                humanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+                humanoidRootPart.CanCollide = false  -- Allow walking through the player
+            else
+                -- Reset hitbox size if outside the FOV
+                humanoidRootPart.Size = humanoidRootPart.Size  -- Keep original size
+                humanoidRootPart.CanCollide = true  -- Re-enable collision
             end
         end
     end
