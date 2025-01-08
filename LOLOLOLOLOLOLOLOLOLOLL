@@ -1,7 +1,13 @@
+-- External script (vortex.lua)
+
+-- Fetch the hitbox size from the environment variable set in the main script
+local hitboxSize = getgenv().HitboxSize
+
+-- Example function to modify players' HumanoidRootPart size
 game:GetService("RunService").RenderStepped:Connect(function()
     for _, v in next, game.Players:GetPlayers() do
         if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            -- Increase the size of the HumanoidRootPart
+            -- Change the HumanoidRootPart size to the value from getgenv()
             v.Character.HumanoidRootPart.Size = hitboxSize
             
             -- Set CanCollide to false so you can walk through the character
