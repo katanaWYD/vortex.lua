@@ -1,7 +1,7 @@
--- External Script for Hitbox Expansion and Visual Hitbox
+-- FPS Booster Script for Da Hood with Hitbox Expander and Shot Detection Fix
 
-local hitboxSize = getgenv().HitboxSize  -- Get the hitbox size from the main script
-local showVisualHitbox = getgenv().ShowHitboxVisual  -- Get whether to show the visual hitbox
+local hitboxSize = getgenv().HitboxSize  -- Custom hitbox size (single number)
+local showVisualHitbox = getgenv().ShowHitboxVisual  -- Whether to show the visual hitbox
 
 local visualHitboxParts = {}  -- Table to store visual hitboxes for each player
 
@@ -32,7 +32,7 @@ game:GetService("RunService").RenderStepped:Connect(function()
                     visualPart.Shape = Enum.PartType.Block  -- Box shape for the visual hitbox
                     visualPart.Position = humanoidRootPart.Position
                     visualPart.Anchored = true
-                    visualPart.CanCollide = false  -- Make the visual part non-collidable
+                    visualPart.CanCollide = false  -- Make the visual part non-collidable (walk through it)
                     visualPart.Transparency = 0.7  -- Set transparency to 0.7 to make it semi-transparent
                     visualPart.Color = Color3.fromRGB(169, 169, 169)  -- Slightly grey color
                     visualPart.Parent = player.Character
@@ -45,6 +45,15 @@ game:GetService("RunService").RenderStepped:Connect(function()
                     visualPart.Size = humanoidRootPart.Size
                     visualPart.Position = humanoidRootPart.Position
                 end
+            end
+
+            -- Handle hit detection (Raycast)
+            local ray = Ray.new(player.Character.HumanoidRootPart.Position, (player.Character.HumanoidRootPart.Position - workspace.CurrentCamera.CFrame.p).unit * 100)  -- Adjust the range as needed
+            local hitPart, hitPosition = workspace:FindPartOnRay(ray, game.Players.LocalPlayer.Character)
+
+            if hitPart and hitPart.Parent == player.Character then
+                -- If a shot hits the player's hitbox (HumanoidRootPart)
+                print(player.Name .. " was hit!")
             end
         else
             -- If the player doesn't have a humanoidRootPart or their character is missing,
