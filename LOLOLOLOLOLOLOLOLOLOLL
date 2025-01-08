@@ -41,9 +41,9 @@ game:GetService("RunService").RenderStepped:Connect(function()
                     -- Disable collision so you can walk through the player if not knocked
                     v.Character.HumanoidRootPart.CanCollide = false
                 else
-                    -- If the player is in the whitelist (knocked), reset the hitbox and re-enable collision
+                    -- If the player is in the whitelist (knocked), reset the hitbox size and disable collision
                     v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size -- Keep original size
-                    v.Character.HumanoidRootPart.CanCollide = true -- Allow collision if knocked
+                    v.Character.HumanoidRootPart.CanCollide = false -- Disable collision completely if knocked
                 end
             end
         end
