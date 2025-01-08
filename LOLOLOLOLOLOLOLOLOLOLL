@@ -1,8 +1,11 @@
 -- External script (vortex.lua)
 
--- Fetch the hitbox size from the environment variable set in the main script
+-- Fetch the hitbox size and knock check setting from the environment variable set in the main script
 local hitboxSize = getgenv().HitboxSize
 local knockCheckEnabled = getgenv().KnockCheckEnabled  -- Fetch the knock check setting
+
+-- Create a whitelist table to keep track of knocked players
+local knockedWhitelist = {}
 
 game:GetService("RunService").RenderStepped:Connect(function()
     for _, v in next, game.Players:GetPlayers() do
@@ -22,15 +25,22 @@ game:GetService("RunService").RenderStepped:Connect(function()
                     end
                 end
                 
-                -- If knock check is disabled or player is not knocked, expand hitbox
-                if not knockCheckEnabled or not isKnocked then
+                -- If knock check is enabled and the player is knocked, add them to the whitelist
+                if isKnocked then
+                    knockedWhitelist[v.UserId] = true  -- Whitelist the knocked player
+                else
+                    knockedWhitelist[v.UserId] = nil  -- Remove the player from the whitelist (they're no longer knocked)
+                end
+
+                -- If the player is not in the whitelist (i.e., not knocked), expand their hitbox
+                if not knockedWhitelist[v.UserId] then
                     -- Apply the custom hitbox size if not knocked
                     v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                     
                     -- Disable collision so you can walk through the player if not knocked
                     v.Character.HumanoidRootPart.CanCollide = false
                 else
-                    -- If the player is knocked, reset the hitbox and re-enable collision
+                    -- If the player is in the whitelist (knocked), reset the hitbox and re-enable collision
                     v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size -- Keep original size
                     v.Character.HumanoidRootPart.CanCollide = true -- Allow collision if knocked
                 end
