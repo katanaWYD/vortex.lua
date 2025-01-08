@@ -15,23 +15,24 @@ game:GetService("RunService").RenderStepped:Connect(function()
                 
                 -- Check for knock state if knock check is enabled
                 if knockCheckEnabled then
+                    -- A player is considered knocked if their health is 0 or their humanoid state is Physics (ragdoll)
                     if humanoid.Health <= 0 or humanoid:GetState() == Enum.HumanoidStateType.Physics then
-                        -- If health is 0 or state is Physics (knocked state), player is considered knocked
+                        -- The player is knocked (health <= 0 or in ragdoll state)
                         isKnocked = true
                     end
                 end
                 
-                -- If knock check is disabled, always expand hitbox
+                -- If knock check is disabled or player is not knocked, expand hitbox
                 if not knockCheckEnabled or not isKnocked then
-                    -- Change the HumanoidRootPart size to the hitbox size (if not knocked)
+                    -- Apply the custom hitbox size if not knocked
                     v.Character.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
                     
-                    -- Set CanCollide to false so you can walk through the character (if not knocked)
+                    -- Disable collision so you can walk through the player if not knocked
                     v.Character.HumanoidRootPart.CanCollide = false
                 else
-                    -- If the player is knocked, reset the hitbox and set CanCollide back to true
-                    v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size
-                    v.Character.HumanoidRootPart.CanCollide = true
+                    -- If the player is knocked, reset the hitbox and re-enable collision
+                    v.Character.HumanoidRootPart.Size = v.Character.HumanoidRootPart.Size -- Keep original size
+                    v.Character.HumanoidRootPart.CanCollide = true -- Allow collision if knocked
                 end
             end
         end
