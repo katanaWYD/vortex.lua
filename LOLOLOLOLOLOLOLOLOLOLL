@@ -1,16 +1,35 @@
 -- External Script (e.g., vortex.lua)
 local hitboxSize = getgenv().HitboxSize
+local players = game:GetService("Players")
+local runService = game:GetService("RunService")
+local lastUpdated = tick() -- Store the time of the last update
 
--- Example of modifying player's hitbox size and other actions
-game:GetService("RunService").RenderStepped:Connect(function()
-    for _, v in next, game.Players:GetPlayers() do
-        if v ~= game.Players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            -- Apply hitbox size from the global variable
-            v.Character.HumanoidRootPart.Size = hitboxSize
-            -- Make the character walk-through by setting CanCollide to false
-            v.Character.HumanoidRootPart.CanCollide = false
+local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
+
+-- Function to update hitbox and collisions
+local function updatePlayerHitbox(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        -- Only update if the size or collision status has changed
+        if hrp.Size ~= hitboxSize then
+            hrp.Size = hitboxSize
+        end
+        if hrp.CanCollide then
+            hrp.CanCollide = false
         end
     end
-end)
+end
 
--- You can add additional functionality here, such as aimbot, silent aim, or other features
+-- Using Heartbeat instead of RenderStepped
+runService.Heartbeat:Connect(function()
+    local currentTime = tick()
+    if currentTime - lastUpdated >= updateInterval then
+        -- Update hitboxes for all players, except the local player
+        for _, v in next, players:GetPlayers() do
+            if v ~= players.LocalPlayer then
+                updatePlayerHitbox(v)
+            end
+        end
+        lastUpdated = currentTime -- Update the last update time
+    end
+end)
