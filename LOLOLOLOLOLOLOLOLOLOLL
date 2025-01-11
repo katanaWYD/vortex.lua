@@ -1,10 +1,27 @@
 -- External Script (e.g., vortex.lua)
-local hitboxSize = getgenv().HitboxSize
+local hitboxSize = getgenv().HitboxSize -- Make sure `HitboxSize` is set properly in your environment
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local lastUpdated = tick() -- Store the time of the last update
 
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
+
+-- Whitelist of Roblox IDs
+local whitelist = {
+    1234567890, -- Replace with actual Roblox user IDs
+    9876543210, -- Replace with actual Roblox user IDs
+    -- Add more user IDs as needed
+}
+
+-- Function to check if the player's Roblox ID is in the whitelist
+local function isWhitelisted(player)
+    for _, id in ipairs(whitelist) do
+        if player.UserId == id then
+            return true
+        end
+    end
+    return false
+end
 
 -- Function to update hitbox and collisions
 local function updatePlayerHitbox(player)
@@ -20,16 +37,47 @@ local function updatePlayerHitbox(player)
     end
 end
 
--- Using Heartbeat instead of RenderStepped
+-- Show Loading Notification
+local function showLoadingNotification()
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Whitelisted", 
+        Text = "Loading...",
+        Icon = "rbxassetid://1234567890", -- Optional: You can replace this with an actual icon
+        Duration = 5 -- Duration of the notification (in seconds)
+    })
+end
+
+-- Check if the player is whitelisted at the start
+if not isWhitelisted(players.LocalPlayer) then
+    players.LocalPlayer:Kick("You're not whitelisted gng")
+    return -- Exit script if not whitelisted
+end
+
+-- Show Loading Notification once the player is whitelisted
+showLoadingNotification()
+
+-- Now that the player is whitelisted, proceed with hitbox expansion
 runService.Heartbeat:Connect(function()
-    local currentTime = tick()
-    if currentTime - lastUpdated >= updateInterval then
-        -- Update hitboxes for all players, except the local player
-        for _, v in next, players:GetPlayers() do
-            if v ~= players.LocalPlayer then
-                updatePlayerHitbox(v)
+    -- Only run the hitbox expander if the player is whitelisted
+    if isWhitelisted(players.LocalPlayer) then
+        local currentTime = tick()
+        if currentTime - lastUpdated >= updateInterval then
+            -- Update hitboxes for all players, except the local player
+            for _, v in next, players:GetPlayers() do
+                if v ~= players.LocalPlayer then
+                    updatePlayerHitbox(v)
+                end
             end
+            lastUpdated = currentTime -- Update the last update time
         end
-        lastUpdated = currentTime -- Update the last update time
     end
 end)
+
+-- You can also change the notification after some time, to say "Ready" or remove it
+wait(3) -- Wait for 3 seconds before changing the notification message
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Whitelisted", 
+    Text = "Ready!",
+    Icon = "rbxassetid://1234567890", -- Optional icon
+    Duration = 3 -- Duration for the "Ready!" message
+})
