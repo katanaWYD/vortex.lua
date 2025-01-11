@@ -8,7 +8,7 @@ local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary pro
 
 -- Whitelist of Roblox IDs
 local whitelist = {
-    4634534763, -- Replace with actual Roblox user IDs
+    7278444088, -- Replace with actual Roblox user IDs
     9876543210, -- Replace with actual Roblox user IDs
     -- Add more user IDs as needed
 }
