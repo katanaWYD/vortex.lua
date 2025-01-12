@@ -3,6 +3,7 @@ getgenv().HitboxSize = Vector3.new(10, 10, 10)  -- Custom hitbox size
 getgenv().Smoothness = 0.3 -- Smoothness factor for camlock
 getgenv().AimlockKey = Enum.KeyCode.V -- Default camlock toggle key (can be customized)
 getgenv().SmoothnessAmount = 0.2 -- Amount of smoothness for camlock movement
+getgenv().PredictionVelocity = 6.612 -- Prediction factor for movement prediction
 
 -- External Script (e.g., vortex.lua)
 local players = game:GetService("Players")
@@ -76,6 +77,10 @@ local function lockCamera(targetPlayer)
     local targetPosition = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
     if targetPosition then
         local targetCFrame = targetPosition.CFrame
+        -- Apply prediction to target's movement (if enabled)
+        if getgenv().PredictMovement then
+            targetCFrame = targetCFrame + targetPlayer.Character.HumanoidRootPart.Velocity / getgenv().PredictionVelocity
+        end
         -- Create a Tween to smoothly transition the camera
         local tweenInfo = TweenInfo.new(getgenv().Smoothness, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
         local goal = {CFrame = camera.CFrame:Lerp(targetCFrame, getgenv().SmoothnessAmount)} -- Smoothly interpolate between current CFrame and target CFrame
