@@ -1,10 +1,17 @@
 -- External Script (e.g., vortex.lua)
-local hitboxSize = getgenv().HitboxSize -- Make sure `HitboxSize` is set properly in your environment
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
+local tweenService = game:GetService("TweenService")
+local userInputService = game:GetService("UserInputService")
 local lastUpdated = tick() -- Store the time of the last update
 
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
+
+local cameraLockEnabled = false -- Boolean to track if camera lock is active
+local targetPlayer = nil -- Currently targeted player
+
+local Aimlock = true
+local MousePressed = false
 
 -- Whitelist of Roblox IDs
 local whitelist = {
@@ -28,8 +35,8 @@ local function updatePlayerHitbox(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
         -- Only update if the size or collision status has changed
-        if hrp.Size ~= hitboxSize then
-            hrp.Size = hitboxSize
+        if hrp.Size ~= getgenv().HitboxSize then
+            hrp.Size = getgenv().HitboxSize
         end
         if hrp.CanCollide then
             hrp.CanCollide = false
@@ -56,6 +63,58 @@ end
 -- Show Loading Notification once the player is whitelisted
 showLoadingNotification()
 
+-- Find the closest player to the mouse position
+local function getClosestPlayerToMouse()
+    local mousePos = userInputService:GetMouseLocation()
+    local closestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, player in ipairs(players:GetPlayers()) do
+        if player ~= players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local playerPosition = player.Character.HumanoidRootPart.Position
+            local screenPos, onScreen = game.Workspace.CurrentCamera:WorldToScreenPoint(playerPosition)
+            if onScreen then
+                local distance = (Vector2.new(mousePos.X, mousePos.Y) - Vector2.new(screenPos.X, screenPos.Y)).magnitude
+                if distance < shortestDistance then
+                    shortestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+
+    return closestPlayer
+end
+
+-- Lock camera smoothly onto a target
+local function lockCamera(targetPlayer)
+    local camera = game.Workspace.CurrentCamera
+    local targetPosition = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if targetPosition then
+        local targetCFrame = targetPosition.CFrame
+        -- Create a Tween to smoothly transition the camera
+        local tweenInfo = TweenInfo.new(getgenv().Smoothness, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+        local goal = {CFrame = targetCFrame}
+        local tween = tweenService:Create(camera, tweenInfo, goal)
+        tween:Play()
+    end
+end
+
+-- Handle camera lock toggle with custom key press (e.g., "V" by default)
+userInputService.InputBegan:Connect(function(input)
+    if input.KeyCode == getgenv().AimlockKey then
+        if AimlockTarget == nil then
+            local target = getClosestPlayerToMouse()
+            if target then
+                AimlockTarget = target
+                lockCamera(AimlockTarget)
+            end
+        else
+            AimlockTarget = nil
+        end
+    end
+end)
+
 -- Now that the player is whitelisted, proceed with hitbox expansion
 runService.Heartbeat:Connect(function()
     -- Only run the hitbox expander if the player is whitelisted
@@ -69,6 +128,13 @@ runService.Heartbeat:Connect(function()
                 end
             end
             lastUpdated = currentTime -- Update the last update time
+        end
+    end
+
+    -- Camera Lock (Aimlock) processing
+    if Aimlock == true and AimlockTarget then
+        if AimlockTarget.Character and AimlockTarget.Character:FindFirstChild("HumanoidRootPart") then
+            lockCamera(AimlockTarget)
         end
     end
 end)
