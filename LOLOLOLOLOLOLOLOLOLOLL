@@ -2,15 +2,9 @@
 local hitboxSize = getgenv().HitboxSize -- Make sure `HitboxSize` is set properly in your environment
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
-local tweenService = game:GetService("TweenService")
-local userInputService = game:GetService("UserInputService")
 local lastUpdated = tick() -- Store the time of the last update
 
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
-local smoothness = 0.3 -- Smoothness factor for camlock
-
-local cameraLockEnabled = false -- Boolean to track if camera lock is active
-local targetPlayer = nil -- Currently targeted player
 
 -- Whitelist of Roblox IDs
 local whitelist = {
@@ -61,61 +55,6 @@ end
 
 -- Show Loading Notification once the player is whitelisted
 showLoadingNotification()
-
--- Function to smoothly lock camera on a target player
-local function lockCamera(targetPlayer)
-    local camera = game.Workspace.CurrentCamera
-    local targetPosition = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if targetPosition then
-        local targetCFrame = targetPosition.CFrame
-        -- Create a Tween to smoothly transition the camera
-        local tweenInfo = TweenInfo.new(smoothness, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-        local goal = {CFrame = targetCFrame}
-        local tween = tweenService:Create(camera, tweenInfo, goal)
-        tween:Play()
-    end
-end
-
--- Find the closest player to the mouse position
-local function getClosestPlayerToMouse()
-    local mousePos = userInputService:GetMouseLocation()
-    local closestPlayer = nil
-    local shortestDistance = math.huge
-
-    for _, player in ipairs(players:GetPlayers()) do
-        if player ~= players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local playerPosition = player.Character.HumanoidRootPart.Position
-            local screenPos, onScreen = game.Workspace.CurrentCamera:WorldToScreenPoint(playerPosition)
-            if onScreen then
-                local distance = (Vector2.new(mousePos.X, mousePos.Y) - Vector2.new(screenPos.X, screenPos.Y)).magnitude
-                if distance < shortestDistance then
-                    shortestDistance = distance
-                    closestPlayer = player
-                end
-            end
-        end
-    end
-
-    return closestPlayer
-end
-
--- Handle camera lock toggle with key press ("C")
-userInputService.InputBegan:Connect(function(input)
-    if input.KeyCode == Enum.KeyCode.C then
-        if cameraLockEnabled then
-            -- Toggle off camera lock
-            cameraLockEnabled = false
-        else
-            -- Toggle on camera lock
-            cameraLockEnabled = true
-            -- Lock onto the closest player to the mouse
-            targetPlayer = getClosestPlayerToMouse()
-            if targetPlayer then
-                lockCamera(targetPlayer)
-            end
-        end
-    end
-end)
 
 -- Now that the player is whitelisted, proceed with hitbox expansion
 runService.Heartbeat:Connect(function()
