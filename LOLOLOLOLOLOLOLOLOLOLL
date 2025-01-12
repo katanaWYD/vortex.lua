@@ -1,3 +1,9 @@
+-- Set up your settings using getgenv() (hidden from view)
+getgenv().HitboxSize = Vector3.new(10, 10, 10)  -- Custom hitbox size
+getgenv().Smoothness = 0.3 -- Smoothness factor for camlock
+getgenv().AimlockKey = Enum.KeyCode.V -- Default camlock toggle key (can be customized)
+getgenv().SmoothnessAmount = 0.2 -- Amount of smoothness for camlock movement
+
 -- External Script (e.g., vortex.lua)
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
@@ -86,7 +92,7 @@ local function getClosestPlayerToMouse()
     return closestPlayer
 end
 
--- Lock camera smoothly onto a target
+-- Smoothly lock the camera onto a target (without teleporting)
 local function lockCamera(targetPlayer)
     local camera = game.Workspace.CurrentCamera
     local targetPosition = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -94,7 +100,7 @@ local function lockCamera(targetPlayer)
         local targetCFrame = targetPosition.CFrame
         -- Create a Tween to smoothly transition the camera
         local tweenInfo = TweenInfo.new(getgenv().Smoothness, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-        local goal = {CFrame = targetCFrame}
+        local goal = {CFrame = camera.CFrame:Lerp(targetCFrame, 0.2)} -- Smoothly interpolate between current CFrame and target CFrame
         local tween = tweenService:Create(camera, tweenInfo, goal)
         tween:Play()
     end
