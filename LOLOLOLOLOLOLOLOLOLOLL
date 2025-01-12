@@ -1,4 +1,4 @@
--- Set up your settings using getgenv() (hidden from view)
+-- Set up your settings using getgenv()
 getgenv().HitboxSize = Vector3.new(10, 10, 10)  -- Custom hitbox size
 getgenv().Smoothness = 0.3 -- Smoothness factor for camlock
 getgenv().AimlockKey = Enum.KeyCode.V -- Default camlock toggle key (can be customized)
@@ -9,17 +9,15 @@ local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local tweenService = game:GetService("TweenService")
 local userInputService = game:GetService("UserInputService")
-local lastUpdated = tick() -- Store the time of the last update
+local camera = workspace.CurrentCamera
 
+local lastUpdated = tick() -- Store the time of the last update
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
 
 local cameraLockEnabled = false -- Boolean to track if camera lock is active
 local targetPlayer = nil -- Currently targeted player
 
-local Aimlock = true
-local MousePressed = false
-
--- Whitelist of Roblox IDs
+-- Whitelist of Roblox IDs (optional, you can skip this if not needed)
 local whitelist = {
     7278444088, -- Replace with actual Roblox user IDs
     9876543210, -- Replace with actual Roblox user IDs
@@ -50,25 +48,6 @@ local function updatePlayerHitbox(player)
     end
 end
 
--- Show Loading Notification
-local function showLoadingNotification()
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "Whitelisted", 
-        Text = "Loading...",
-        Icon = "rbxassetid://1234567890", -- Optional: You can replace this with an actual icon
-        Duration = 5 -- Duration of the notification (in seconds)
-    })
-end
-
--- Check if the player is whitelisted at the start
-if not isWhitelisted(players.LocalPlayer) then
-    players.LocalPlayer:Kick("You're not whitelisted gng")
-    return -- Exit script if not whitelisted
-end
-
--- Show Loading Notification once the player is whitelisted
-showLoadingNotification()
-
 -- Find the closest player to the mouse position
 local function getClosestPlayerToMouse()
     local mousePos = userInputService:GetMouseLocation()
@@ -78,7 +57,7 @@ local function getClosestPlayerToMouse()
     for _, player in ipairs(players:GetPlayers()) do
         if player ~= players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local playerPosition = player.Character.HumanoidRootPart.Position
-            local screenPos, onScreen = game.Workspace.CurrentCamera:WorldToScreenPoint(playerPosition)
+            local screenPos, onScreen = camera:WorldToScreenPoint(playerPosition)
             if onScreen then
                 local distance = (Vector2.new(mousePos.X, mousePos.Y) - Vector2.new(screenPos.X, screenPos.Y)).magnitude
                 if distance < shortestDistance then
@@ -94,13 +73,12 @@ end
 
 -- Smoothly lock the camera onto a target (without teleporting)
 local function lockCamera(targetPlayer)
-    local camera = game.Workspace.CurrentCamera
     local targetPosition = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
     if targetPosition then
         local targetCFrame = targetPosition.CFrame
         -- Create a Tween to smoothly transition the camera
         local tweenInfo = TweenInfo.new(getgenv().Smoothness, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
-        local goal = {CFrame = camera.CFrame:Lerp(targetCFrame, 0.2)} -- Smoothly interpolate between current CFrame and target CFrame
+        local goal = {CFrame = camera.CFrame:Lerp(targetCFrame, getgenv().SmoothnessAmount)} -- Smoothly interpolate between current CFrame and target CFrame
         local tween = tweenService:Create(camera, tweenInfo, goal)
         tween:Play()
     end
@@ -109,14 +87,17 @@ end
 -- Handle camera lock toggle with custom key press (e.g., "V" by default)
 userInputService.InputBegan:Connect(function(input)
     if input.KeyCode == getgenv().AimlockKey then
-        if AimlockTarget == nil then
-            local target = getClosestPlayerToMouse()
-            if target then
-                AimlockTarget = target
-                lockCamera(AimlockTarget)
+        if not cameraLockEnabled then
+            -- Turn on the camera lock
+            cameraLockEnabled = true
+            targetPlayer = getClosestPlayerToMouse()
+            if targetPlayer then
+                lockCamera(targetPlayer)
             end
         else
-            AimlockTarget = nil
+            -- Turn off the camera lock
+            cameraLockEnabled = false
+            targetPlayer = nil
         end
     end
 end)
@@ -138,15 +119,14 @@ runService.Heartbeat:Connect(function()
     end
 
     -- Camera Lock (Aimlock) processing
-    if Aimlock == true and AimlockTarget then
-        if AimlockTarget.Character and AimlockTarget.Character:FindFirstChild("HumanoidRootPart") then
-            lockCamera(AimlockTarget)
+    if cameraLockEnabled and targetPlayer then
+        if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            lockCamera(targetPlayer)
         end
     end
 end)
 
--- You can also change the notification after some time, to say "Ready" or remove it
-wait(3) -- Wait for 3 seconds before changing the notification message
+-- Show Loading Notification once the player is whitelisted
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Whitelisted", 
     Text = "Ready!",
