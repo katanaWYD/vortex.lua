@@ -177,3 +177,4 @@ runService.Heartbeat:Connect(function()
         activateTriggerbot()
     end
 end)
+ 
