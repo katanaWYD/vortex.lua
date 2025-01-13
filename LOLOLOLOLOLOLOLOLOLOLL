@@ -13,8 +13,8 @@ local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary pro
 local triggerbotEnabled = getgenv().triggerbotEnabled or false -- Initialize triggerbot state
 local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
--- Distance range for triggerbot (in studs)
-local maxShootDistance = 100 -- Change this value to increase/decrease the shooting range
+-- Increase the distance range for triggerbot (in studs)
+local maxShootDistance = 10000 -- Increase the distance range to 10000 studs
 
 -- Whitelist of Roblox IDs
 local whitelist = {
@@ -60,7 +60,7 @@ local function isAimingAtPlayer()
             local character = player.Character
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
             if humanoidRootPart then
-                -- Calculate the distance from the player to the target's character
+                -- Calculate the distance from the player to the target's character (no longer restricted by close range)
                 local distance = (humanoidRootPart.Position - playerPos).Magnitude
                 if distance <= maxShootDistance then
                     -- Check if the player's character is within the crosshair
