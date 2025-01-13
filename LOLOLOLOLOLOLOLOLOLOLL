@@ -83,7 +83,7 @@ wait(3)
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Whitelisted", 
     Text = "Ready!",
-    Icon = "rbxassetid://125586741087567", -- Optional icon
+    Icon = "rbxassetid://15174585982", -- Optional icon
     Duration = 3 -- Duration for the "Ready!" message
 })
 
