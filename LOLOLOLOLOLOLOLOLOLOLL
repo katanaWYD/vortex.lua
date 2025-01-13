@@ -13,6 +13,9 @@ local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary pro
 local triggerbotEnabled = getgenv().triggerbotEnabled or false -- Initialize triggerbot state
 local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
+-- Distance range for triggerbot (in studs)
+local maxShootDistance = 100 -- Change this value to increase/decrease the shooting range
+
 -- Whitelist of Roblox IDs
 local whitelist = {
     7278444088, -- Replace with actual Roblox user IDs
@@ -48,25 +51,40 @@ end
 local function isAimingAtPlayer()
     local target = nil
     local closestDistance = math.huge
+    local camera = workspace.CurrentCamera
+    local playerPos = camera.CFrame.Position
+    
+    -- Iterate through all players to check if they are in range and the crosshair is on them
     for _, player in ipairs(players:GetPlayers()) do
         if player ~= players.LocalPlayer and player.Character then
             local character = player.Character
-            -- Check all parts of the player's character (HumanoidRootPart, Head, Torso, etc.)
-            local parts = {}
-            for _, part in ipairs(character:GetChildren()) do
-                if part:IsA("BasePart") and part.CanCollide then
-                    table.insert(parts, part)
-                end
-            end
+            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+            if humanoidRootPart then
+                -- Calculate the distance from the player to the target's character
+                local distance = (humanoidRootPart.Position - playerPos).Magnitude
+                if distance <= maxShootDistance then
+                    -- Check all parts of the player's character (HumanoidRootPart, Head, Torso, etc.)
+                    local parts = {}
+                    for _, part in ipairs(character:GetChildren()) do
+                        if part:IsA("BasePart") and part.CanCollide then
+                            table.insert(parts, part)
+                        end
+                    end
 
-            for _, part in ipairs(parts) do
-                local screenPosition, onScreen = workspace.CurrentCamera:WorldToScreenPoint(part.Position)
-                if onScreen then
-                    local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                    -- Consider it a target if the crosshair is near the part (within 20 pixels)
-                    if distance < 20 then
-                        closestDistance = distance
-                        target = player
+                    -- Now check if the crosshair is near any of the body parts
+                    for _, part in ipairs(parts) do
+                        local screenPosition, onScreen = camera:WorldToScreenPoint(part.Position)
+                        if onScreen then
+                            local crosshairDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                            -- Allow shooting if the crosshair is within 50 pixels
+                            if crosshairDistance < 50 then
+                                -- If the crosshair is close to the body part and in range, this is a valid target
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    target = player
+                                end
+                            end
+                        end
                     end
                 end
             end
@@ -158,4 +176,3 @@ runService.Heartbeat:Connect(function()
         activateTriggerbot()
     end
 end)
- 
