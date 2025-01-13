@@ -44,19 +44,27 @@ local function updatePlayerHitbox(player)
     end
 end
 
--- Triggerbot functionality
+-- Triggerbot functionality with raycasting for shooting
 local function isAimingAtPlayer()
     local target = nil
     local closestDistance = math.huge
     for _, player in ipairs(players:GetPlayers()) do
-        if player ~= players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        if player ~= players.LocalPlayer and player.Character then
             local character = player.Character
-            local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-            if humanoidRootPart then
-                local screenPosition, onScreen = workspace.CurrentCamera:WorldToScreenPoint(humanoidRootPart.Position)
+            -- Check all parts of the player's character (HumanoidRootPart, Head, Torso, etc.)
+            local parts = {}
+            for _, part in ipairs(character:GetChildren()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    table.insert(parts, part)
+                end
+            end
+
+            for _, part in ipairs(parts) do
+                local screenPosition, onScreen = workspace.CurrentCamera:WorldToScreenPoint(part.Position)
                 if onScreen then
                     local distance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                    if distance < closestDistance then
+                    -- Consider it a target if the crosshair is near the part (within 20 pixels)
+                    if distance < 20 then
                         closestDistance = distance
                         target = player
                     end
@@ -67,13 +75,32 @@ local function isAimingAtPlayer()
     return target
 end
 
+-- Raycast function to simulate shooting at the player
+local function shootAtPlayer(target)
+    if target and target.Character then
+        -- Cast a ray from the camera's position to the player's character
+        local camera = workspace.CurrentCamera
+        local rayOrigin = camera.CFrame.Position
+        local rayDirection = (target.Character.HumanoidRootPart.Position - rayOrigin).unit * 999 -- Long distance
+        local ray = Ray.new(rayOrigin, rayDirection)
+
+        -- Perform the raycast
+        local hitPart, hitPosition = workspace:FindPartOnRay(ray, game:GetService("Players"):GetPlayers(), true, true)
+        
+        -- If the ray hits a body part (other than the player itself), trigger the shot
+        if hitPart and hitPart.Parent:FindFirstChild("Humanoid") then
+            -- Simulate shooting here, for example triggering the gun's fire function
+            mouse1click()  -- Placeholder for the actual shooting logic
+        end
+    end
+end
+
 local function activateTriggerbot()
     if triggerbotEnabled then
-        local target = isAimingAtPlayer()
+        local target = isAimingAtPlayer()  -- Get the player under the crosshair
         if target then
-            -- Triggerbot: simulate shooting when the crosshair is over the target player
-            -- Here we use MouseClick as an example:
-            mouse1click() -- This is a placeholder for your shooting logic
+            -- Triggerbot: simulate shooting when the crosshair is over any part of the target's body
+            shootAtPlayer(target)
         end
     end
 end
