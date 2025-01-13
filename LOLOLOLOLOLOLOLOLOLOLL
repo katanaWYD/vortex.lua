@@ -44,6 +44,20 @@ local function updatePlayerHitbox(player)
     end
 end
 
+-- Raycast to check if there's a clear line of sight to the player (no walls blocking the view)
+local function canSeePlayer(player)
+    local camera = workspace.CurrentCamera
+    local playerPos = player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.Position
+    if not playerPos then return false end
+
+    -- Raycast from the camera to the player's position
+    local ray = workspace:Raycast(camera.CFrame.Position, (playerPos - camera.CFrame.Position).unit * 10000) -- Long-range raycast
+    if ray and ray.Instance and ray.Instance.Parent == player.Character then
+        return true
+    end
+    return false
+end
+
 -- Triggerbot functionality with raycasting for shooting in Da Hood
 local function isAimingAtPlayer()
     local target = nil
@@ -55,7 +69,7 @@ local function isAimingAtPlayer()
             local character = player.Character
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
             if humanoidRootPart then
-                -- Check if the player's character is within the crosshair (no distance limitation)
+                -- Check if the player's character is within the crosshair and if the player is visible (not blocked by walls)
                 local parts = {}
                 for _, part in ipairs(character:GetChildren()) do
                     if part:IsA("BasePart") and part.CanCollide then
@@ -71,7 +85,10 @@ local function isAimingAtPlayer()
                         local crosshairDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
                         -- Triggerbot will shoot if the crosshair is within a 100-pixel radius of the player's character
                         if crosshairDistance < 100 then
-                            target = player
+                            -- Only shoot if the player is visible (no walls in the way)
+                            if canSeePlayer(player) then
+                                target = player
+                            end
                         end
                     end
                 end
