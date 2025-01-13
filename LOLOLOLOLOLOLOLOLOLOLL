@@ -30,21 +30,7 @@ local function isWhitelisted(player)
     return false
 end
 
--- Function to update hitbox and collisions
-local function updatePlayerHitbox(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = player.Character.HumanoidRootPart
-        -- Only update if the size or collision status has changed
-        if hrp.Size ~= hitboxSize then
-            hrp.Size = hitboxSize
-        end
-        if hrp.CanCollide then
-            hrp.CanCollide = false
-        end
-    end
-end
-
--- Triggerbot functionality with raycasting for shooting
+-- Triggerbot functionality with raycasting for shooting in Da Hood
 local function isAimingAtPlayer()
     local target = nil
     local closestDistance = math.huge
@@ -75,22 +61,18 @@ local function isAimingAtPlayer()
     return target
 end
 
--- Raycast function to simulate shooting at the player
+-- Simulate shooting action in Da Hood
 local function shootAtPlayer(target)
     if target and target.Character then
-        -- Cast a ray from the camera's position to the player's character
-        local camera = workspace.CurrentCamera
-        local rayOrigin = camera.CFrame.Position
-        local rayDirection = (target.Character.HumanoidRootPart.Position - rayOrigin).unit * 999 -- Long distance
-        local ray = Ray.new(rayOrigin, rayDirection)
-
-        -- Perform the raycast
-        local hitPart, hitPosition = workspace:FindPartOnRay(ray, game:GetService("Players"):GetPlayers(), true, true)
-        
-        -- If the ray hits a body part (other than the player itself), trigger the shot
-        if hitPart and hitPart.Parent:FindFirstChild("Humanoid") then
-            -- Simulate shooting here, for example triggering the gun's fire function
-            mouse1click()  -- Placeholder for the actual shooting logic
+        -- Check if the character has a humanoid
+        local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            -- Simulate the shooting action by calling a function from Da Hood's shooting system
+            local gun = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+            if gun and gun:IsA("Tool") then
+                -- Activate the gun's shoot function. This works for guns in Da Hood, such as pistols.
+                gun:Activate()
+            end
         end
     end
 end
