@@ -1,48 +1,13 @@
 -- External Script (vortex.lua)
 
 -- Ensure proper settings are initialized
-local hitboxSize = getgenv().HitboxSize or Vector3.new(10, 10, 10) -- Default to a hitbox size if not set
-local macroToggleKey = getgenv().MacroToggleKey or "x" -- Default key for macro toggle
-local triggerbotToggleKey = getgenv().TriggerbotToggleKey or "z" -- Default key for triggerbot toggle
+local macroToggleKey = getgenv().MacroToggleKey or "x"  -- Default key for macro toggle
+local triggerbotToggleKey = getgenv().TriggerbotToggleKey or "z"  -- Default key for triggerbot toggle
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
-local lastUpdated = tick() -- Store the time of the last update
-
-local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
-
-local triggerbotEnabled = getgenv().triggerbotEnabled or false -- Initialize triggerbot state
 local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
--- Whitelist of Roblox IDs
-local whitelist = {
-    7278444088, -- Replace with actual Roblox user IDs
-    9876543210, -- Replace with actual Roblox user IDs
-    -- Add more user IDs as needed
-}
-
--- Function to check if the player's Roblox ID is in the whitelist
-local function isWhitelisted(player)
-    for _, id in ipairs(whitelist) do
-        if player.UserId == id then
-            return true
-        end
-    end
-    return false
-end
-
--- Function to update hitbox and collisions
-local function updatePlayerHitbox(player)
-    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = player.Character.HumanoidRootPart
-        -- Only update if the size or collision status has changed
-        if hrp.Size ~= hitboxSize then
-            hrp.Size = hitboxSize
-        end
-        if hrp.CanCollide then
-            hrp.CanCollide = false
-        end
-    end
-end
+local triggerbotEnabled = getgenv().triggerbotEnabled or false  -- Initialize triggerbot state
 
 -- Raycast to check if there's a clear line of sight to the player (no walls blocking the view)
 local function canSeePlayer(player)
@@ -69,25 +34,29 @@ local function isAimingAtPlayer()
             local character = player.Character
             local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
             if humanoidRootPart then
-                -- Check if the player's character is within the crosshair and if the player is visible (not blocked by walls)
-                local parts = {}
-                for _, part in ipairs(character:GetChildren()) do
-                    if part:IsA("BasePart") and part.CanCollide then
-                        table.insert(parts, part)
-                    end
-                end
+                -- Specific body parts we want to check
+                local bodyParts = {
+                    character:FindFirstChild("Head"),
+                    character:FindFirstChild("Torso"),
+                    character:FindFirstChild("LeftLeg"),
+                    character:FindFirstChild("RightLeg"),
+                    character:FindFirstChild("LeftArm"),
+                    character:FindFirstChild("RightArm"),
+                }
                 
-                -- Check if the crosshair is on the player's character bounding box
-                for _, part in ipairs(parts) do
-                    local screenPosition, onScreen = camera:WorldToScreenPoint(part.Position)
-                    if onScreen then
-                        -- Increase the size of the area considered as the "target" for the triggerbot
-                        local crosshairDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                        -- Triggerbot will shoot if the crosshair is within a 100-pixel radius of the player's character
-                        if crosshairDistance < 100 then
-                            -- Only shoot if the player is visible (no walls in the way)
-                            if canSeePlayer(player) then
-                                target = player
+                -- Loop through each body part and check if the crosshair is on them
+                for _, part in ipairs(bodyParts) do
+                    if part then
+                        local screenPosition, onScreen = camera:WorldToScreenPoint(part.Position)
+                        if onScreen then
+                            -- Increase the size of the area considered as the "target" for the triggerbot
+                            local crosshairDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                            -- Triggerbot will shoot if the crosshair is within a 100-pixel radius of the player's body part
+                            if crosshairDistance < 100 then
+                                -- Only shoot if the player is visible (no walls in the way)
+                                if canSeePlayer(player) then
+                                    target = player
+                                end
                             end
                         end
                     end
@@ -162,20 +131,6 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 
 -- Update hitbox for other players periodically
 runService.Heartbeat:Connect(function()
-    -- Only run the hitbox expander if the player is whitelisted
-    if isWhitelisted(players.LocalPlayer) then
-        local currentTime = tick()
-        if currentTime - lastUpdated >= updateInterval then
-            -- Update hitboxes for all players, except the local player
-            for _, v in next, players:GetPlayers() do
-                if v ~= players.LocalPlayer then
-                    updatePlayerHitbox(v)
-                end
-            end
-            lastUpdated = currentTime -- Update the last update time
-        end
-    end
-
     -- If triggerbot is active, try to shoot
     if triggerbotEnabled then
         activateTriggerbot()
