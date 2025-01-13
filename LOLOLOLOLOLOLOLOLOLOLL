@@ -63,22 +63,23 @@ local function isAimingAtPlayer()
                 -- Calculate the distance from the player to the target's character
                 local distance = (humanoidRootPart.Position - playerPos).Magnitude
                 if distance <= maxShootDistance then
-                    -- Check all parts of the player's character (HumanoidRootPart, Head, Torso, etc.)
+                    -- Check if the player's character is within the crosshair
                     local parts = {}
                     for _, part in ipairs(character:GetChildren()) do
                         if part:IsA("BasePart") and part.CanCollide then
                             table.insert(parts, part)
                         end
                     end
-
-                    -- Now check if the crosshair is near any of the body parts
+                    
+                    -- Check if the crosshair is on the player's character bounding box
                     for _, part in ipairs(parts) do
                         local screenPosition, onScreen = camera:WorldToScreenPoint(part.Position)
                         if onScreen then
+                            -- Increase the size of the area considered as the "target" for the triggerbot
                             local crosshairDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
-                            -- Allow shooting if the crosshair is within 50 pixels
-                            if crosshairDistance < 50 then
-                                -- If the crosshair is close to the body part and in range, this is a valid target
+                            -- Triggerbot will shoot if the crosshair is within a 100-pixel radius of the player's character
+                            if crosshairDistance < 100 then
+                                -- If the crosshair is near any part of the body and within range, consider it a valid target
                                 if distance < closestDistance then
                                     closestDistance = distance
                                     target = player
