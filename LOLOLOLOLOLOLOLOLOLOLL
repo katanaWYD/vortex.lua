@@ -13,7 +13,7 @@ local triggerbotEnabled = getgenv().triggerbotEnabled or false  -- Initialize tr
 local function isKnifeEquipped()
     local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
     if tool then
-        -- List of knives in Da Hood
+        -- List of knives in Da Hood (adjust based on game content)
         local knives = {"Knife", "Melee", "Kukri"}  -- Add more knife names if necessary
         for _, knife in ipairs(knives) do
             if tool.Name == knife then
@@ -96,8 +96,10 @@ local function shootAtPlayer(target)
             -- Simulate the shooting action by calling a function from Da Hood's shooting system
             local gun = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
             if gun and gun:IsA("Tool") then
-                -- Activate the gun's shoot function. This works for guns in Da Hood, such as pistols.
-                gun:Activate()
+                -- Ensure we're holding a gun (not a knife)
+                if gun.Name == "DB" or gun.Name == "REV" or gun.Name == "TAC" then  -- Check if it's a gun (e.g., DB, REV, TAC)
+                    gun:Activate()  -- Activate the gun's shoot function. This works for guns in Da Hood.
+                end
             end
         end
     end
