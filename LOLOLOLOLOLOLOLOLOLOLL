@@ -9,17 +9,16 @@ local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
 local triggerbotEnabled = getgenv().triggerbotEnabled or false  -- Initialize triggerbot state
 
--- Function to check if the tool in slot 4 is a knife or invalid for shooting
+-- Function to check if the current tool in slot 4 is a knife or invalid for shooting
 local function isToolInSlot4KnifeOrInvalid()
-    local player = game.Players.LocalPlayer
-    local backpack = player.Backpack
-    local slot4Tool = backpack:FindFirstChild(player:FindFirstChildOfClass("Tool") and player:FindFirstChildOfClass("Tool").Name)
+    local toolInSlot4 = game.Players.LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
     
-    if slot4Tool then
-        -- List of knives or unwanted tools in Da Hood (you can add more knives to the list if necessary)
+    -- Check if the tool is equipped in slot 4 (for instance, the tool in slot 4 might be the knife)
+    if toolInSlot4 then
+        -- List of knives in Da Hood (you can add more knives to the list if necessary)
         local knives = {"Knife", "Melee", "Kukri"}  -- Add more knife names if necessary
         for _, knife in ipairs(knives) do
-            if slot4Tool.Name == knife then
+            if toolInSlot4.Name == knife then
                 return true  -- Return true if the knife is equipped in slot 4
             end
         end
@@ -91,7 +90,7 @@ local function shootAtPlayer(target)
         -- Check if the character has a humanoid
         local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            -- Check if a knife is equipped in slot 4 (prevent shooting)
+            -- Check if the tool in slot 4 is a knife (prevent shooting)
             if isToolInSlot4KnifeOrInvalid() then
                 return  -- Don't shoot if the knife is equipped in slot 4
             end
