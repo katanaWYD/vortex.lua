@@ -30,6 +30,20 @@ local function isWhitelisted(player)
     return false
 end
 
+-- Function to update hitbox and collisions
+local function updatePlayerHitbox(player)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        -- Only update if the size or collision status has changed
+        if hrp.Size ~= hitboxSize then
+            hrp.Size = hitboxSize
+        end
+        if hrp.CanCollide then
+            hrp.CanCollide = false
+        end
+    end
+end
+
 -- Triggerbot functionality with raycasting for shooting in Da Hood
 local function isAimingAtPlayer()
     local target = nil
