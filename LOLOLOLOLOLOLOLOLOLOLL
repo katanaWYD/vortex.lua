@@ -9,19 +9,21 @@ local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
 local triggerbotEnabled = getgenv().triggerbotEnabled or false  -- Initialize triggerbot state
 
--- Function to check if the current tool is a knife
-local function isKnifeEquipped()
-    local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-    if tool then
-        -- List of knives in Da Hood
+-- Function to check if the current tool in slot 4 is a knife or invalid for shooting
+local function isToolInSlot4KnifeOrInvalid()
+    local toolInSlot4 = game.Players.LocalPlayer.Backpack:FindFirstChildOfClass("Tool")
+    
+    -- Check if the tool is equipped in slot 4 (for instance, the tool in slot 4 might be the knife)
+    if toolInSlot4 then
+        -- List of knives in Da Hood (you can add more knives to the list if necessary)
         local knives = {"Knife", "Melee", "Kukri"}  -- Add more knife names if necessary
         for _, knife in ipairs(knives) do
-            if tool.Name == knife then
-                return true
+            if toolInSlot4.Name == knife then
+                return true  -- Return true if the knife is equipped in slot 4
             end
         end
     end
-    return false
+    return false  -- Return false if no knife is equipped in slot 4
 end
 
 -- Raycast to check if there's a clear line of sight to the player (no walls blocking the view)
@@ -88,9 +90,9 @@ local function shootAtPlayer(target)
         -- Check if the character has a humanoid
         local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
-            -- Check if a knife is equipped
-            if isKnifeEquipped() then
-                return  -- Don't shoot if a knife is equipped
+            -- Check if the tool in slot 4 is a knife (prevent shooting)
+            if isToolInSlot4KnifeOrInvalid() then
+                return  -- Don't shoot if the knife is equipped in slot 4
             end
 
             -- Simulate the shooting action by calling a function from Da Hood's shooting system
