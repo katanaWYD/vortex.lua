@@ -67,7 +67,7 @@ local function isAimingAtPlayer()
                     if part then
                         local screenPosition, onScreen = camera:WorldToScreenPoint(part.Position)
                         if onScreen then
-                            -- Increase the size of the area considered as the "target" for the triggerbot
+                            -- Calculate the distance between the crosshair and the body part
                             local crosshairDistance = (Vector2.new(screenPosition.X, screenPosition.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
                             -- Triggerbot will shoot if the crosshair is within a 100-pixel radius of the player's body part
                             if crosshairDistance < 100 then
