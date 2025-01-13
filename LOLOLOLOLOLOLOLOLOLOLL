@@ -120,4 +120,39 @@ mouse.KeyDown:Connect(function(Key)
         SpeedGlitch = not SpeedGlitch
         if SpeedGlitch then
             repeat 
-                game:GetService("VirtualInputManager"):
+                game:GetService("VirtualInputManager"):SendMouseWheelEvent("0", "0", true, game)
+                wait(0.000001)
+                game:GetService("VirtualInputManager"):SendMouseWheelEvent("0", "0", false, game)
+                wait(0.000001)
+            until not SpeedGlitch
+        end
+    elseif Key == triggerbotToggleKey then
+        -- Toggle triggerbot on/off
+        triggerbotEnabled = not triggerbotEnabled
+        local status = triggerbotEnabled and "enabled" or "disabled"
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Triggerbot", 
+            Text = "Triggerbot " .. status,
+            Duration = 3
+        })
+    end
+end)
+
+-- Wait for 3 seconds before changing the notification to "Ready!"
+wait(3)
+
+-- Change notification after 3 seconds
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Whitelisted", 
+    Text = "Ready!",
+    Icon = "rbxassetid://1234567890", -- Optional icon
+    Duration = 3 -- Duration for the "Ready!" message
+})
+
+-- Update hitbox for other players periodically
+runService.Heartbeat:Connect(function()
+    -- If triggerbot is active, try to shoot
+    if triggerbotEnabled then
+        activateTriggerbot()
+    end
+end)
