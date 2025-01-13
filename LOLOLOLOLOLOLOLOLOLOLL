@@ -43,7 +43,7 @@ local function showLoadingNotification()
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Whitelisted", 
         Text = "Loading...",
-        Icon = "rbxassetid://1234567890", -- Optional: Replace this with an actual icon
+        Icon = "rbxassetid://15174585982", -- Optional: Replace this with an actual icon
         Duration = 5 -- Duration of the notification (in seconds)
     })
 end
