@@ -9,6 +9,21 @@ local mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
 local triggerbotEnabled = getgenv().triggerbotEnabled or false  -- Initialize triggerbot state
 
+-- Function to check if the current tool is a knife
+local function isKnifeEquipped()
+    local tool = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
+    if tool then
+        -- List of knives in Da Hood
+        local knives = {"Knife", "Melee", "Kukri"}  -- Add more knife names if necessary
+        for _, knife in ipairs(knives) do
+            if tool.Name == knife then
+                return true
+            end
+        end
+    end
+    return false
+end
+
 -- Raycast to check if there's a clear line of sight to the player (no walls blocking the view)
 local function canSeePlayer(player)
     local camera = workspace.CurrentCamera
@@ -73,6 +88,11 @@ local function shootAtPlayer(target)
         -- Check if the character has a humanoid
         local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
         if humanoid then
+            -- Check if a knife is equipped
+            if isKnifeEquipped() then
+                return  -- Don't shoot if a knife is equipped
+            end
+
             -- Simulate the shooting action by calling a function from Da Hood's shooting system
             local gun = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
             if gun and gun:IsA("Tool") then
@@ -100,39 +120,4 @@ mouse.KeyDown:Connect(function(Key)
         SpeedGlitch = not SpeedGlitch
         if SpeedGlitch then
             repeat 
-                game:GetService("VirtualInputManager"):SendMouseWheelEvent("0", "0", true, game)
-                wait(0.000001)
-                game:GetService("VirtualInputManager"):SendMouseWheelEvent("0", "0", false, game)
-                wait(0.000001)
-            until not SpeedGlitch
-        end
-    elseif Key == triggerbotToggleKey then
-        -- Toggle triggerbot on/off
-        triggerbotEnabled = not triggerbotEnabled
-        local status = triggerbotEnabled and "enabled" or "disabled"
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Triggerbot", 
-            Text = "Triggerbot " .. status,
-            Duration = 3
-        })
-    end
-end)
-
--- Wait for 3 seconds before changing the notification to "Ready!"
-wait(3)
-
--- Change notification after 3 seconds
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "Whitelisted", 
-    Text = "Ready!",
-    Icon = "rbxassetid://1234567890", -- Optional icon
-    Duration = 3 -- Duration for the "Ready!" message
-})
-
--- Update hitbox for other players periodically
-runService.Heartbeat:Connect(function()
-    -- If triggerbot is active, try to shoot
-    if triggerbotEnabled then
-        activateTriggerbot()
-    end
-end)
+                game:GetService("VirtualInputManager"):
