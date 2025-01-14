@@ -3,14 +3,12 @@ local macroToggleKey = getgenv().MacroToggleKey -- Get the macro toggle key sett
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local lastUpdated = tick() -- Store the time of the last update
-
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
 
 -- Whitelist of Roblox IDs
 local whitelist = {
-    7278444088, -- Replace with actual Roblox user IDs
-    9876543210, -- Replace with actual Roblox user IDs
-    -- Add more user IDs as needed
+    7278444088, 
+    9876543210,
 }
 
 -- Function to check if the player's Roblox ID is in the whitelist
@@ -23,43 +21,10 @@ local function isWhitelisted(player)
     return false
 end
 
--- Function to update hitbox and disable blood effects (but keep HP bar)
+-- Function to update hitbox and collisions
 local function updatePlayerHitbox(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
-        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-        
-        if humanoid then
-            -- Prevent health from changing (no blood from damage)
-            humanoid.Health = humanoid.MaxHealth  -- Keep health at max
-            humanoid.HealthChanged:Connect(function()
-                humanoid.Health = humanoid.MaxHealth  -- Reset health if it changes
-            end)
-
-            -- Disable damage-related effects (no blood)
-            humanoid.Died:Connect(function()
-                return -- Prevent death event and the blood effect
-            end)
-
-            humanoid.HealthChanged:Connect(function()
-                return -- Prevent health change from triggering blood effects
-            end)
-
-            -- Disable any collision-related blood effects (damage effect)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-            
-            -- Disable specific blood effects (e.g., particles, decals)
-            -- We will try to find and remove the particle effects (if any)
-            local particleEffects = player.Character:FindFirstChild("Head"):FindFirstChild("BodyEffects")
-            if particleEffects then
-                for _, effect in pairs(particleEffects:GetChildren()) do
-                    if effect:IsA("ParticleEmitter") then
-                        effect.Enabled = false  -- Disable the particle emitter (blood effect)
-                    end
-                end
-            end
-        end
-
         -- Only update if the size or collision status has changed
         if hrp.Size ~= hitboxSize then
             hrp.Size = hitboxSize
@@ -70,12 +35,23 @@ local function updatePlayerHitbox(player)
     end
 end
 
+-- Function to disable blood effects
+local function disableBloodEffects(player)
+    if player.Character then
+        for _, part in pairs(player.Character:GetDescendants()) do
+            if part:IsA("ParticleEmitter") or part.Name:match("Blood") then
+                part:Destroy() -- Destroy the particle emitter or blood effect
+            end
+        end
+    end
+end
+
 -- Show Loading Notification
 local function showLoadingNotification()
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Whitelisted", 
         Text = "Loading...",
-        Icon = "rbxassetid://1234567890", -- Optional: Replace this with an actual icon
+        Icon = "rbxassetid://15174585982", -- Optional: Replace this with an actual icon
         Duration = 5 -- Duration of the notification (in seconds)
     })
 end
@@ -115,7 +91,7 @@ wait(3)
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Whitelisted", 
     Text = "Ready!",
-    Icon = "rbxassetid://125586741087567", -- Optional icon
+    Icon = "rbxassetid://15174585982", -- Optional icon
     Duration = 3 -- Duration for the "Ready!" message
 })
 
@@ -129,9 +105,27 @@ runService.Heartbeat:Connect(function()
             for _, v in next, players:GetPlayers() do
                 if v ~= players.LocalPlayer then
                     updatePlayerHitbox(v)
+                    -- Disable blood effects for each player
+                    disableBloodEffects(v)
                 end
             end
             lastUpdated = currentTime -- Update the last update time
         end
     end
+end)
+
+-- Function to handle shooting logic (without the red dot or any visual markers)
+local function handleShooting()
+    local ray = workspace.CurrentCamera:ScreenPointToRay(Mouse.X, Mouse.Y) -- Create a ray from mouse position
+    local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 500) -- Perform a raycast
+
+    if raycastResult then
+        -- Raycast hits an object, but no red dot or visual effect is created
+        -- You can apply logic here for hitting the target (e.g., damage, effects)
+    end
+end
+
+-- Example of triggering shooting logic on mouse button press
+Mouse.Button1Down:Connect(function()
+    handleShooting() -- Call the shooting function when the mouse is clicked
 end)
