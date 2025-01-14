@@ -23,26 +23,41 @@ local function isWhitelisted(player)
     return false
 end
 
--- Function to update hitbox and prevent damage (blood effects)
+-- Function to update hitbox and disable blood effects (but keep HP bar)
 local function updatePlayerHitbox(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
         local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
         
         if humanoid then
-            -- Prevent health from changing (no blood or damage effects)
+            -- Prevent health from changing (no blood from damage)
             humanoid.Health = humanoid.MaxHealth  -- Keep health at max
             humanoid.HealthChanged:Connect(function()
                 humanoid.Health = humanoid.MaxHealth  -- Reset health if it changes
             end)
-            
-            -- Disable damage-related effects
+
+            -- Disable damage-related effects (no blood)
             humanoid.Died:Connect(function()
                 return -- Prevent death event and the blood effect
             end)
 
-            -- Disable any collision-related blood effects
+            humanoid.HealthChanged:Connect(function()
+                return -- Prevent health change from triggering blood effects
+            end)
+
+            -- Disable any collision-related blood effects (damage effect)
             humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+            
+            -- Disable specific blood effects (e.g., particles, decals)
+            -- We will try to find and remove the particle effects (if any)
+            local particleEffects = player.Character:FindFirstChild("Head"):FindFirstChild("BodyEffects")
+            if particleEffects then
+                for _, effect in pairs(particleEffects:GetChildren()) do
+                    if effect:IsA("ParticleEmitter") then
+                        effect.Enabled = false  -- Disable the particle emitter (blood effect)
+                    end
+                end
+            end
         end
 
         -- Only update if the size or collision status has changed
