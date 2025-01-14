@@ -1,11 +1,10 @@
--- External Script (vortex.lua)
 local hitboxSize = getgenv().HitboxSize -- Ensure this is set properly in your environment
 local macroToggleKey = getgenv().MacroToggleKey -- Get the macro toggle key setting
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local lastUpdated = tick() -- Store the time of the last update
 
-local updateInterval = 0.3 -- Increase the interval to reduce updates (0.3 seconds instead of 0.1)
+local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
 
 -- Whitelist of Roblox IDs
 local whitelist = {
@@ -24,27 +23,26 @@ local function isWhitelisted(player)
     return false
 end
 
--- Function to update hitbox and collisions
+-- Function to update hitbox and collisions, disable blood effect
 local function updatePlayerHitbox(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
+        local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+        
+        -- Prevent blood effect by turning off health effects
+        if humanoid then
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false) -- Disable physics-based effects (like blood)
+            humanoid.HealthChanged:Connect(function()
+                humanoid.Health = humanoid.MaxHealth -- Prevent health from decreasing (no blood from damage)
+            end)
+        end
+
         -- Only update if the size or collision status has changed
         if hrp.Size ~= hitboxSize then
             hrp.Size = hitboxSize
         end
         if hrp.CanCollide then
             hrp.CanCollide = false
-        end
-    end
-end
-
--- Function to disable blood effects
-local function disableBloodEffects(player)
-    if player.Character then
-        for _, part in pairs(player.Character:GetDescendants()) do
-            if part:IsA("ParticleEmitter") or part.Name:match("Blood") then
-                part:Destroy() -- Destroy the particle emitter or blood effect
-            end
         end
     end
 end
@@ -98,7 +96,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
     Duration = 3 -- Duration for the "Ready!" message
 })
 
--- Update hitbox for other players periodically with a more efficient approach
+-- Update hitbox for other players periodically
 runService.Heartbeat:Connect(function()
     -- Only run the hitbox expander if the player is whitelisted
     if isWhitelisted(players.LocalPlayer) then
@@ -106,15 +104,8 @@ runService.Heartbeat:Connect(function()
         if currentTime - lastUpdated >= updateInterval then
             -- Update hitboxes for all players, except the local player
             for _, v in next, players:GetPlayers() do
-                if v ~= players.LocalPlayer and v.Character then
-                    -- Check if the player's hitbox is still valid for update
-                    if not v.Character:FindFirstChild("HumanoidRootPart") then
-                        continue -- Skip if the character is missing key parts
-                    end
-                    
-                    -- Only update players who need their hitbox changed
+                if v ~= players.LocalPlayer then
                     updatePlayerHitbox(v)
-                    disableBloodEffects(v) -- Disable blood effects for each player
                 end
             end
             lastUpdated = currentTime -- Update the last update time
