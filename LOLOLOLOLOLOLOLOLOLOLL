@@ -1,10 +1,8 @@
--- External Script (vortex.lua)
 local hitboxSize = getgenv().HitboxSize -- Ensure this is set properly in your environment
 local macroToggleKey = getgenv().MacroToggleKey -- Get the macro toggle key setting
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local lastUpdated = tick() -- Store the time of the last update
-
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
 
 -- Whitelist of Roblox IDs
@@ -34,6 +32,17 @@ local function updatePlayerHitbox(player)
         end
         if hrp.CanCollide then
             hrp.CanCollide = false
+        end
+    end
+end
+
+-- Function to disable blood effects
+local function disableBloodEffects(player)
+    if player.Character then
+        for _, part in pairs(player.Character:GetDescendants()) do
+            if part:IsA("ParticleEmitter") or part.Name:match("Blood") then
+                part:Destroy() -- Destroy the particle emitter or blood effect
+            end
         end
     end
 end
@@ -97,9 +106,36 @@ runService.Heartbeat:Connect(function()
             for _, v in next, players:GetPlayers() do
                 if v ~= players.LocalPlayer then
                     updatePlayerHitbox(v)
+                    -- Disable blood effects for each player
+                    disableBloodEffects(v)
                 end
             end
             lastUpdated = currentTime -- Update the last update time
         end
+    end
+end)
+
+-- Add a function to display a shot marker
+local function showShotLocation(position)
+    local shotMarker = Instance.new("Part")
+    shotMarker.Size = Vector3.new(1, 1, 1)
+    shotMarker.Position = position
+    shotMarker.Anchored = true
+    shotMarker.CanCollide = false
+    shotMarker.Shape = Enum.PartType.Ball
+    shotMarker.Color = Color3.fromRGB(255, 0, 0) -- Red color for the shot marker
+    shotMarker.Parent = game.Workspace
+
+    -- Add a brief fade-out effect
+    game:GetService("TweenService"):Create(shotMarker, TweenInfo.new(0.5), {Transparency = 1}):Play()
+    game:GetService("Debris"):AddItem(shotMarker, 1) -- Remove it after 1 second
+end
+
+-- Example of where you can call `showShotLocation`
+-- (You need to integrate this with your shooting logic, e.g., when a player gets hit)
+Mouse.Button1Down:Connect(function()
+    local target = Mouse.Target -- Get the location of the target when clicked
+    if target then
+        showShotLocation(target.Position) -- Show shot location on click
     end
 end)
