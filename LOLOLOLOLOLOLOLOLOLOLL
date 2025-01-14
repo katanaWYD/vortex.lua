@@ -1,15 +1,17 @@
+-- External Script (vortex.lua)
 local hitboxSize = getgenv().HitboxSize -- Ensure this is set properly in your environment
 local macroToggleKey = getgenv().MacroToggleKey -- Get the macro toggle key setting
 local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local lastUpdated = tick() -- Store the time of the last update
+
 local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
 
 -- Whitelist of Roblox IDs
 local whitelist = {
-    7278444088, 
-    9876543210,
-    552947865, 
+    7278444088, -- Replace with actual Roblox user IDs
+    9876543210, -- Replace with actual Roblox user IDs
+    -- Add more user IDs as needed
 }
 
 -- Function to check if the player's Roblox ID is in the whitelist
@@ -22,7 +24,7 @@ local function isWhitelisted(player)
     return false
 end
 
--- Function to update hitbox and collisions (Only updates if needed)
+-- Function to update hitbox and collisions
 local function updatePlayerHitbox(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
@@ -52,7 +54,7 @@ local function showLoadingNotification()
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "Whitelisted", 
         Text = "Loading...",
-        Icon = "rbxassetid://15174585982", -- Optional: Replace this with an actual icon
+        Icon = "rbxassetid://1234567890", -- Optional: Replace this with an actual icon
         Duration = 5 -- Duration of the notification (in seconds)
     })
 end
@@ -66,22 +68,21 @@ end
 -- Show Loading Notification once the player is whitelisted
 showLoadingNotification()
 
--- SpeedGlitch functionality (Optimized for less performance impact)
-local Player = players.LocalPlayer
+-- SpeedGlitch functionality
+local Player = game:GetService("Players").LocalPlayer
 local Mouse = Player:GetMouse()
 local SpeedGlitch = false
 
 Mouse.KeyDown:Connect(function(Key)
     if Key == macroToggleKey then
         SpeedGlitch = not SpeedGlitch
-        if SpeedGlitch then
-            repeat
-                -- Slightly slower wait to reduce performance issues
+        if SpeedGlitch == true then
+            repeat 
                 game:GetService("VirtualInputManager"):SendMouseWheelEvent("0", "0", true, game)
-                wait(0.01)
+                wait(0.000001)
                 game:GetService("VirtualInputManager"):SendMouseWheelEvent("0", "0", false, game)
-                wait(0.01)
-            until not SpeedGlitch
+                wait(0.000001)
+            until SpeedGlitch == false
         end
     end
 end)
@@ -93,19 +94,21 @@ wait(3)
 game:GetService("StarterGui"):SetCore("SendNotification", {
     Title = "Whitelisted", 
     Text = "Ready!",
-    Icon = "rbxassetid://15174585982", -- Optional icon
+    Icon = "rbxassetid://125586741087567", -- Optional icon
     Duration = 3 -- Duration for the "Ready!" message
 })
 
--- Update hitbox for other players periodically (Optimized)
+-- Update hitbox for other players periodically
 runService.Heartbeat:Connect(function()
+    -- Only run the hitbox expander if the player is whitelisted
     if isWhitelisted(players.LocalPlayer) then
         local currentTime = tick()
         if currentTime - lastUpdated >= updateInterval then
-            -- Update hitboxes for players within the same zone or visible range to avoid unnecessary checks
-            for _, v in ipairs(players:GetPlayers()) do
-                if v ~= players.LocalPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            -- Update hitboxes for all players, except the local player
+            for _, v in next, players:GetPlayers() do
+                if v ~= players.LocalPlayer then
                     updatePlayerHitbox(v)
+                    -- Disable blood effects for each player
                     disableBloodEffects(v)
                 end
             end
@@ -114,18 +117,3 @@ runService.Heartbeat:Connect(function()
     end
 end)
 
--- Function to handle shooting logic (without the red dot or any visual markers)
-local function handleShooting()
-    local ray = workspace.CurrentCamera:ScreenPointToRay(Mouse.X, Mouse.Y) -- Create a ray from mouse position
-    local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 500) -- Perform a raycast
-
-    if raycastResult then
-        -- Raycast hits an object, but no red dot or visual effect is created
-        -- You can apply logic here for hitting the target (e.g., damage, effects)
-    end
-end
-
--- Example of triggering shooting logic on mouse button press
-Mouse.Button1Down:Connect(function()
-    handleShooting() -- Call the shooting function when the mouse is clicked
-end)
