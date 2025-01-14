@@ -5,7 +5,7 @@ local players = game:GetService("Players")
 local runService = game:GetService("RunService")
 local lastUpdated = tick() -- Store the time of the last update
 
-local updateInterval = 0.1 -- Update every 0.1 seconds to reduce unnecessary processing
+local updateInterval = 0.3 -- Increase the interval to reduce updates (0.3 seconds instead of 0.1)
 
 -- Whitelist of Roblox IDs
 local whitelist = {
@@ -98,7 +98,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
     Duration = 3 -- Duration for the "Ready!" message
 })
 
--- Update hitbox for other players periodically
+-- Update hitbox for other players periodically with a more efficient approach
 runService.Heartbeat:Connect(function()
     -- Only run the hitbox expander if the player is whitelisted
     if isWhitelisted(players.LocalPlayer) then
@@ -106,14 +106,18 @@ runService.Heartbeat:Connect(function()
         if currentTime - lastUpdated >= updateInterval then
             -- Update hitboxes for all players, except the local player
             for _, v in next, players:GetPlayers() do
-                if v ~= players.LocalPlayer then
+                if v ~= players.LocalPlayer and v.Character then
+                    -- Check if the player's hitbox is still valid for update
+                    if not v.Character:FindFirstChild("HumanoidRootPart") then
+                        continue -- Skip if the character is missing key parts
+                    end
+                    
+                    -- Only update players who need their hitbox changed
                     updatePlayerHitbox(v)
-                    -- Disable blood effects for each player
-                    disableBloodEffects(v)
+                    disableBloodEffects(v) -- Disable blood effects for each player
                 end
             end
             lastUpdated = currentTime -- Update the last update time
         end
     end
 end)
-
