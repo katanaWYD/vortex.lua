@@ -115,14 +115,14 @@ runService.Heartbeat:Connect(function()
     end
 end)
 
--- Function to handle shooting logic (without the red dot)
+-- Function to handle shooting logic (without the red dot or any visual markers)
 local function handleShooting()
     local ray = workspace.CurrentCamera:ScreenPointToRay(Mouse.X, Mouse.Y) -- Create a ray from mouse position
     local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 500) -- Perform a raycast
 
     if raycastResult then
-        -- Raycast hits an object, but no red dot is shown
-        -- Optionally, you can handle the hit logic here (e.g., apply damage)
+        -- Raycast hits an object, but no red dot or visual effect is created
+        -- You can apply logic here for hitting the target (e.g., damage, effects)
     end
 end
 
