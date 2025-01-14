@@ -23,18 +23,26 @@ local function isWhitelisted(player)
     return false
 end
 
--- Function to update hitbox and collisions, disable blood effect
+-- Function to update hitbox and prevent damage (blood effects)
 local function updatePlayerHitbox(player)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = player.Character.HumanoidRootPart
         local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
         
-        -- Prevent blood effect by turning off health effects
         if humanoid then
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false) -- Disable physics-based effects (like blood)
+            -- Prevent health from changing (no blood or damage effects)
+            humanoid.Health = humanoid.MaxHealth  -- Keep health at max
             humanoid.HealthChanged:Connect(function()
-                humanoid.Health = humanoid.MaxHealth -- Prevent health from decreasing (no blood from damage)
+                humanoid.Health = humanoid.MaxHealth  -- Reset health if it changes
             end)
+            
+            -- Disable damage-related effects
+            humanoid.Died:Connect(function()
+                return -- Prevent death event and the blood effect
+            end)
+
+            -- Disable any collision-related blood effects
+            humanoid:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
         end
 
         -- Only update if the size or collision status has changed
