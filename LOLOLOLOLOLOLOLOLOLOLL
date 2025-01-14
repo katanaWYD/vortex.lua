@@ -115,27 +115,18 @@ runService.Heartbeat:Connect(function()
     end
 end)
 
--- Add a function to display a shot marker
-local function showShotLocation(position)
-    local shotMarker = Instance.new("Part")
-    shotMarker.Size = Vector3.new(1, 1, 1)
-    shotMarker.Position = position
-    shotMarker.Anchored = true
-    shotMarker.CanCollide = false
-    shotMarker.Shape = Enum.PartType.Ball
-    shotMarker.Color = Color3.fromRGB(255, 0, 0) -- Red color for the shot marker
-    shotMarker.Parent = game.Workspace
+-- Function to handle shooting logic (without the red dot)
+local function handleShooting()
+    local ray = workspace.CurrentCamera:ScreenPointToRay(Mouse.X, Mouse.Y) -- Create a ray from mouse position
+    local raycastResult = workspace:Raycast(ray.Origin, ray.Direction * 500) -- Perform a raycast
 
-    -- Add a brief fade-out effect
-    game:GetService("TweenService"):Create(shotMarker, TweenInfo.new(0.5), {Transparency = 1}):Play()
-    game:GetService("Debris"):AddItem(shotMarker, 1) -- Remove it after 1 second
+    if raycastResult then
+        -- Raycast hits an object, but no red dot is shown
+        -- Optionally, you can handle the hit logic here (e.g., apply damage)
+    end
 end
 
--- Example of where you can call `showShotLocation`
--- (You need to integrate this with your shooting logic, e.g., when a player gets hit)
+-- Example of triggering shooting logic on mouse button press
 Mouse.Button1Down:Connect(function()
-    local target = Mouse.Target -- Get the location of the target when clicked
-    if target then
-        showShotLocation(target.Position) -- Show shot location on click
-    end
+    handleShooting() -- Call the shooting function when the mouse is clicked
 end)
